@@ -1,0 +1,36 @@
+version: '3.3'
+services:
+  l6e2-db:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    networks:
+      - my_network
+  l6e2-web:
+    restart: always
+    # czeka na db
+    depends_on:
+      - l6e2-db
+    # build: . <- buduje Dockerfile w aktualnym folderze
+    environment:
+      - PORT=5500
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    networks:
+      - my_network
+  l6e2-nginx:
+    image: nginx
+    restart: always
+    ports:
+      - "8080:80"
+    networks:
+      - my_network
+    volumes:
+      - ./nginx:/etc/nginx/conf.d/:ro
+
+networks:
+  my_network:
+    driver: bridge

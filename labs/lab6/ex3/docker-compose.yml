@@ -1,0 +1,47 @@
+version: '3.3'
+services:
+  l6e3-database:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    networks:
+      - backend_network
+  l6e3-backend:
+    restart: always
+    depends_on:
+      - l6e3-database
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - PORT=5500
+    networks:
+      - frontend_network
+      - backend_network
+  l6e3-frontend:
+    restart: always
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    networks:
+      - frontend_network
+  l6e3-nginx:
+    restart: always
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - frontend_network
+    depends_on:
+      - l6e3-frontend
+      - l6e3-backend
+
+networks:
+  frontend_network:
+    driver: bridge
+  backend_network:
+    driver: bridge
